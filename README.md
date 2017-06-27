@@ -1,15 +1,5 @@
-# Embedded application template
+# GAUGE MAX17201 example
 
-Usage:
-* Clone to `your-project-dir` and enter it
-* Edit readme file
-* Modify remote URL with:
-    ```sh
-    $ git remote set-url origin git@gitlab.com:catie_sixtron/your-project-name.git'
-    $ git push -u origin master
-    ```
-* Initialize with:
+A simple demo showing how to configure and read some relevant values of the MAXIM INTEGRATED gauge MAX17201.
 
-    ```sh
-    $ mbed deploy
-    ```
+The gauge is configured for a 800 mAh battery, with 1 cell, and no thermistors.
