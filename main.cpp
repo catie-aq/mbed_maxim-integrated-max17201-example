@@ -33,6 +33,10 @@ int main()
 	i2c.frequency(400000);
 	Thread::wait(2000);
 
+    /* When configured, the gauge looses all the learning done between last
+    configuration. So if gauge remained powered since last configuration,
+    dont use the configuration function to keep the learning in order to have more
+    accurate values. */
 	if (gauge.configure(1, 800, 3.3, false, false)){
 		printf("Gauge configured !\n");
 	}
