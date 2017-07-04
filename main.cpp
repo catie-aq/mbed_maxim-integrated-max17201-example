@@ -21,7 +21,7 @@ namespace {
 #define PERIOD_MS 2000
 }
 
-I2C i2c(I2C1_SDA, I2C1_SCL);
+I2C i2c(I2C_SDA, I2C_SCL);
 static DigitalOut led1(LED1);
 
 MAX17201 gauge(&i2c, DIO1);
