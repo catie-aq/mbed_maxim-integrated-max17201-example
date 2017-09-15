@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 #include "mbed.h"
-#include "MAX17201.hpp"
+#include "max17201.h"
+
+using namespace sixtron;
 
 namespace {
 #define PERIOD_MS 2000
@@ -30,27 +32,28 @@ MAX17201 gauge(&i2c, DIO1);
 // (note the calls to Thread::wait below for delays)
 int main()
 {
-	i2c.frequency(400000);
-	Thread::wait(2000);
+    i2c.frequency(400000);
+    Thread::wait(2000);
 
     /* When configured, the gauge looses all the learning done between last
     configuration. So if gauge remained powered since last configuration,
     dont use the configuration function to keep the learning in order to have more
     accurate values. */
-	if (gauge.configure(1, 800, 3.3, false, false)){
-		printf("Gauge configured !\n");
-	}
-	else
-	{
+    if (gauge.configure(1, 800, 3.3, false, false)){
+	printf("Gauge configured !\n");
+    }
+    else {
 		printf("Error with gauge ! \n");
-	}
+    }
 
     while (true) {
         printf("Alive!\n");
         printf("Capacity : %.3f mAh\n", gauge.reported_capacity());
+        printf("Full Capacity : %.3f mAh\n", gauge.full_capacity());
         printf("SOC: %.3f percent\n", gauge.state_of_charge());
         printf("Voltage : %.3f Volts\n",gauge.cell_voltage()/1000);
         printf("Current : %.3f mA\n",gauge.current());
+        printf("Temperature : %.3f\n", gauge.temperature());
         led1 = !led1;
         Thread::wait(PERIOD_MS);
     }
