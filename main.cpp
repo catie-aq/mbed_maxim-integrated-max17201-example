@@ -38,6 +38,7 @@ EventQueue queue;
 InterruptIn max17201alrt1(DIO1);
 uint16_t max17201_alrtStatus = 0;
 
+Serial serial(SERIAL_RX, SERIAL_TX);
 
 // main() runs in its own thread in the OSvv
 // (note the calls to Thread::wait below for delays)
@@ -97,6 +98,7 @@ int main()
  ******************************************************************/
 void listener_alrt()
 {
+	// printf for debug : "\r\n" allow to separate this content with main thread contents
 	printf("\r\n");
 	printf("/!\\ alert detected /!\\\n");
 
