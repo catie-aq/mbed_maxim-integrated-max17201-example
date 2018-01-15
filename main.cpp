@@ -22,20 +22,21 @@ using namespace sixtron;
 
 namespace {
 #define PERIOD_MS 2000
+#define MAX17201_ALERT
 }
 
+#ifdef MAX17201_ALERT
 // this functions/parameters are used for max17201 management alert
 void print_alrt(uint16_t reg);
 void listener_alrt(void);
 Thread thread_alrt;
 EventQueue queue;
 uint16_t max17201_alrtStatus = 0;
-bool enable_alert = true; //
+#endif
 
 I2C i2c(I2C_SDA, I2C_SCL);
-static DigitalOut led1(LED1);
-
 MAX17201 gauge(&i2c, DIO1);
+static DigitalOut led1(LED1);
 
 // main() runs in its own thread in the OSvv
 // (note the calls to Thread::wait below for delays)
@@ -53,43 +54,38 @@ int main()
     if (gauge.configure(1, 800, 3.3, false, false)){
 
     	printf("Gauge configured !\n");
-
-        if (enable_alert){
+#ifdef MAX17201_ALERT
            	// here, set the alert threshold function
         	gauge.set_temperature_alerts(MAX_TEMPERATURE_ALERT, MIN_TEMPERATURE_ALERT);
         	gauge.set_voltage_alerts(MAX_VOLTAGE_ALERT, MIN_VOLTAGE_ALERT);
         	// max17201 alert enable
         	gauge.enable_alerts();
         	gauge.enable_temperature_alerts();
-        	gauge.get_interruptPin()->enable_irq(); // interruption enable
         	wait_ms(250); // let time to software to compute new values
-
-        	// to use alert management with interrupt system you need to use this mechanism
+			gauge.set_callback(&queue, &listener_alrt);
+			// to use alert management with interrupt system you need to use this mechanism
 			thread_alrt.start(callback(&queue, &EventQueue::dispatch_forever));
-			gauge.get_interruptPin()->fall(queue.event(&listener_alrt));
-        }
-
-
+#endif
     }
     else {
     	printf("Error with gauge ! \n");
     }
 
     while (true) {
-        printf("Alive!\n");
-        printf("Capacity : %.3f mAh\n", gauge.reported_capacity());
-        printf("Full Capacity : %.3f mAh\n", gauge.full_capacity());
-        printf("SOC: %.3f percent\n", gauge.state_of_charge());
-        printf("Voltage : %.3f Volts\n",gauge.cell_voltage()/1000);
-        printf("Current : %.3f mA\n",gauge.current());
-        printf("Temperature : %.3f\n", gauge.temperature());
+    	printf("Alive!\n\r");
+    	printf("Capacity : %.3f mAh\n", gauge.reported_capacity());
+    	printf("Full Capacity : %.3f mAh\n", gauge.full_capacity());
+    	printf("SOC: %.3f percent\n", gauge.state_of_charge());
+    	printf("Voltage : %.3f Volts\n",gauge.cell_voltage()/1000);
+    	printf("Current : %.3f mA\n",gauge.current());
+    	printf("Temperature : %.3f\n", gauge.temperature());
         led1 = !led1;
         Thread::wait(PERIOD_MS);
     }
 }
 
 
-
+#ifdef MAX17201_ALERT
 /******************************************************************
  *
  * function : void listener_alrt()
@@ -199,5 +195,5 @@ void print_alrt(uint16_t res)
 		 }
 	}
 }
-
+#endif
 
