@@ -23,7 +23,7 @@ using namespace sixtron;
 namespace {
 #define PERIOD_MS 2000
 #define MAX17201_ALERT
-#define MAX_VOLTAGE_ALERT        3.8 // V
+#define MAX_VOLTAGE_ALERT        4.2 // V
 #define MIN_VOLTAGE_ALERT        3.1 // V
 #define MAX_CURRENT_ALERT        500 // mA
 #define MIN_CURRENT_ALERT        1 	 // mA
@@ -33,19 +33,17 @@ namespace {
 
 #ifdef MAX17201_ALERT
 // this functions/parameters are used for max17201 management alert
-void print_alrt(uint16_t reg);
-void listener_alrt(void);
+void callback_alrt(void);
+void mangament_alrt(void);
 Thread thread_alrt;
 EventQueue queue;
 uint16_t max17201_alrtStatus = 0;
-bool alert_detected = false;
 #endif
 
 I2C i2c(I2C_SDA, I2C_SCL);
 MAX17201 gauge(&i2c, DIO1);
 static DigitalOut led1(LED1);
 
-Serial serial(SERIAL_TX, SERIAL_RX, 9600);
 
 // main() runs in its own thread in the OSvv
 // (note the calls to Thread::wait below for delays)
@@ -60,7 +58,7 @@ int main()
     accurate values.
     if the last parameter = true (enable_alert), it's necessary to configure the alert threshold value
     in gauge.configure function */
-    if (gauge.configure(1, 800, 3.3, false, false)){
+    if (gauge.configure(1, 800, 3.3, false, false)) {
 
     	printf("Gauge configured !\n");
 #ifdef MAX17201_ALERT
@@ -70,10 +68,9 @@ int main()
         	gauge.enable_alerts(); // max17201 alert enable
         	gauge.enable_temperature_alerts();
         	wait_ms(250); // let time to software to compute new values
-			gauge.set_callback(&listener_alrt);
-			// to use alert management with EventQueue interrupt system and without the flag "alert_detected", you need to use this mechanism :
-			//gauge.set_callback_EventQueue(&queue, &listener_alrt);
-			//thread_alrt.start(callback(&queue, &EventQueue::dispatch_forever));
+        	gauge.set_callback(&callback_alrt); //define callback interrupt function
+			// to use alert management with EventQueue interrupt system attached an other thread, you need to use this mechanism :
+			thread_alrt.start(callback(&queue, &EventQueue::dispatch_forever));
 #endif
     }
     else {
@@ -89,16 +86,6 @@ int main()
     	printf("Current : %.3f mA\n",gauge.current());
     	printf("Temperature : %.3f\n", gauge.temperature());
         led1 = !led1;
-
-        if (alert_detected){
-        	// printf for debug : "\r\n" allow to separate this content with main thread contents
-        	serial.printf("\r\n");
-        	serial.printf("/!\\ alert detected /!\\\n");
-        	max17201_alrtStatus = gauge.status();
-        	print_alrt(max17201_alrtStatus);
-        	serial.printf("\r\n");
-        	alert_detected = false;
-        }
         Thread::wait(PERIOD_MS);
     }
 }
@@ -107,33 +94,34 @@ int main()
 #ifdef MAX17201_ALERT
 /******************************************************************
  *
- * function : void listener_alrt()
- * param : none
+ * function : void callback_alrt()
  *
  * this function is called when alert was detected on Interrupt pin
  *
  ******************************************************************/
-void listener_alrt()
+void callback_alrt()
 {
-	// here, implement your routine to manage alert
-	alert_detected = true;
+	// here, implement your EventQueue attached function
+	queue.call(mangament_alrt);
 }
 
 /******************************************************************
  *
- * function : void print_alrt()
- * param : none
+ * function : void mangament_alrt()
  *
- * this function print label of alerts
+ * this function manage the alert type detected
  *
  ******************************************************************/
-void print_alrt(uint16_t res)
-{
+void mangament_alrt() {
+	// printf for debug : "\r\n" allow to separate this content with main thread contents
+
+	printf("\r\n/!\\ alert detected /!\\\n");
+	max17201_alrtStatus = gauge.status();
 	/* treatment status : for each bit of i2c register status (0x00)
 	 * cf page 65 of max17201 datasheet */
-	for (int i=((sizeof(res)*8)-1); i>-1; i--){
+	for (int i=((sizeof(max17201_alrtStatus)*8)-1); i>-1; i--){
 		// if bit = 1 detected
-		if ((res & (1 << i))){
+		if ((max17201_alrtStatus & (1 << i))){
 			switch(static_cast<MAX17201::StatusAlert>(i))
 			{
 				// Power On Reset Indicator
@@ -208,5 +196,6 @@ void print_alrt(uint16_t res)
 			 }
 		 }
 	}
+	printf("\r\n");
 }
 #endif
