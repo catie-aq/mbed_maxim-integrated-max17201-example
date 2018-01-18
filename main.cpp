@@ -23,6 +23,12 @@ using namespace sixtron;
 namespace {
 #define PERIOD_MS 2000
 #define MAX17201_ALERT
+#define MAX_VOLTAGE_ALERT        3.8 // V
+#define MIN_VOLTAGE_ALERT        3.1 // V
+#define MAX_CURRENT_ALERT        500 // mA
+#define MIN_CURRENT_ALERT        1 	 // mA
+#define MAX_TEMPERATURE_ALERT    50  // °C
+#define MIN_TEMPERATURE_ALERT    5   // °C
 }
 
 #ifdef MAX17201_ALERT
@@ -32,11 +38,14 @@ void listener_alrt(void);
 Thread thread_alrt;
 EventQueue queue;
 uint16_t max17201_alrtStatus = 0;
+bool alert_detected = false;
 #endif
 
 I2C i2c(I2C_SDA, I2C_SCL);
 MAX17201 gauge(&i2c, DIO1);
 static DigitalOut led1(LED1);
+
+Serial serial(SERIAL_TX, SERIAL_RX, 9600);
 
 // main() runs in its own thread in the OSvv
 // (note the calls to Thread::wait below for delays)
@@ -58,13 +67,13 @@ int main()
            	// here, set the alert threshold function
         	gauge.set_temperature_alerts(MAX_TEMPERATURE_ALERT, MIN_TEMPERATURE_ALERT);
         	gauge.set_voltage_alerts(MAX_VOLTAGE_ALERT, MIN_VOLTAGE_ALERT);
-        	// max17201 alert enable
-        	gauge.enable_alerts();
+        	gauge.enable_alerts(); // max17201 alert enable
         	gauge.enable_temperature_alerts();
         	wait_ms(250); // let time to software to compute new values
-			gauge.set_callback(&queue, &listener_alrt);
-			// to use alert management with interrupt system you need to use this mechanism
-			thread_alrt.start(callback(&queue, &EventQueue::dispatch_forever));
+			gauge.set_callback(&listener_alrt);
+			// to use alert management with EventQueue interrupt system and without the flag "alert_detected", you need to use this mechanism :
+			//gauge.set_callback_EventQueue(&queue, &listener_alrt);
+			//thread_alrt.start(callback(&queue, &EventQueue::dispatch_forever));
 #endif
     }
     else {
@@ -80,6 +89,16 @@ int main()
     	printf("Current : %.3f mA\n",gauge.current());
     	printf("Temperature : %.3f\n", gauge.temperature());
         led1 = !led1;
+
+        if (alert_detected){
+        	// printf for debug : "\r\n" allow to separate this content with main thread contents
+        	serial.printf("\r\n");
+        	serial.printf("/!\\ alert detected /!\\\n");
+        	max17201_alrtStatus = gauge.status();
+        	print_alrt(max17201_alrtStatus);
+        	serial.printf("\r\n");
+        	alert_detected = false;
+        }
         Thread::wait(PERIOD_MS);
     }
 }
@@ -96,13 +115,8 @@ int main()
  ******************************************************************/
 void listener_alrt()
 {
-	// printf for debug : "\r\n" allow to separate this content with main thread contents
-	printf("\r\n");
-	printf("/!\\ alert detected /!\\\n");
-	max17201_alrtStatus = gauge.status();
-	print_alrt(max17201_alrtStatus);
-	printf("\r\n");
-
+	// here, implement your routine to manage alert
+	alert_detected = true;
 }
 
 /******************************************************************
@@ -196,4 +210,3 @@ void print_alrt(uint16_t res)
 	}
 }
 #endif
-
