@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <stddef.h>
 #include "mbed.h"
 #include "max17201.h"
 #include "Thread.h"
@@ -23,7 +24,7 @@ using namespace sixtron;
 namespace {
 #define PERIOD_MS 2000
 #define MAX17201_ALERT
-#define MAX_VOLTAGE_ALERT        4.2 // V
+#define MAX_VOLTAGE_ALERT        3.8 // V
 #define MIN_VOLTAGE_ALERT        3.1 // V
 #define MAX_CURRENT_ALERT        500 // mA
 #define MIN_CURRENT_ALERT        1 	 // mA
@@ -59,8 +60,7 @@ int main()
     if the last parameter = true (enable_alert), it's necessary to configure the alert threshold value
     in gauge.configure function */
     if (gauge.configure(1, 800, 3.3, false, false)) {
-
-    	printf("Gauge configured !\n");
+    	printf("Gauge configured !\n\r");
 #ifdef MAX17201_ALERT
            	// here, set the alert threshold function
         	gauge.set_temperature_alerts(MAX_TEMPERATURE_ALERT, MIN_TEMPERATURE_ALERT);
@@ -68,23 +68,23 @@ int main()
         	gauge.enable_alerts(); // max17201 alert enable
         	gauge.enable_temperature_alerts();
         	wait_ms(250); // let time to software to compute new values
-        	gauge.set_callback(&callback_alrt); //define callback interrupt function
+        	gauge.attach_callback(&callback_alrt); //attach callback interrupt function
 			// to use alert management with EventQueue interrupt system attached an other thread, you need to use this mechanism :
 			thread_alrt.start(callback(&queue, &EventQueue::dispatch_forever));
 #endif
     }
     else {
-    	printf("Error with gauge ! \n");
+    	printf("Error with gauge ! \n\r");
     }
 
     while (true) {
     	printf("Alive!\n\r");
-    	printf("Capacity : %.3f mAh\n", gauge.reported_capacity());
-    	printf("Full Capacity : %.3f mAh\n", gauge.full_capacity());
-    	printf("SOC: %.3f percent\n", gauge.state_of_charge());
-    	printf("Voltage : %.3f Volts\n",gauge.cell_voltage()/1000);
-    	printf("Current : %.3f mA\n",gauge.current());
-    	printf("Temperature : %.3f\n", gauge.temperature());
+    	printf("Capacity : %.3f mAh\n\r", gauge.reported_capacity());
+    	printf("Full Capacity : %.3f mAh\n\r", gauge.full_capacity());
+    	printf("SOC: %.3f percent\n\r", gauge.state_of_charge());
+    	printf("Voltage : %.3f Volts\n\r",gauge.cell_voltage()/1000);
+    	printf("Current : %.3f mA\n\r",gauge.current());
+    	printf("Temperature : %.3f\n\r", gauge.temperature());
         led1 = !led1;
         Thread::wait(PERIOD_MS);
     }
@@ -115,7 +115,7 @@ void callback_alrt()
 void mangament_alrt() {
 	// printf for debug : "\r\n" allow to separate this content with main thread contents
 
-	printf("\r\n/!\\ alert detected /!\\\n");
+	printf("\r\n/!\\ alert detected /!\\\n\r");
 	max17201_alrtStatus = gauge.status();
 	/* treatment status : for each bit of i2c register status (0x00)
 	 * cf page 65 of max17201 datasheet */
@@ -126,76 +126,78 @@ void mangament_alrt() {
 			{
 				// Power On Reset Indicator
 				case MAX17201::StatusAlert::ALERT_POR_RST:
-					printf("info : Power On Reset Indicator\n");
+					printf("info : Power On Reset Indicator\n\r");
 					break;
 
 				// Minimum Current Alert Threshold Exceeded
 				case MAX17201::StatusAlert::ALERT_CURRENT_L:
-					printf("Alert : Minimum Current Threshold Exceeded\n");
+					printf("Alert : Minimum Current Threshold Exceeded\n\r");
 					break;
 
 				// Battery presence indicator
 				case MAX17201::StatusAlert::BATTERY_IS_PRESENT:
-					printf("Alert : Battery presence indicator\n");
+					printf("Alert : Battery presence indicator\n\r");
 					break;
 
 				// Maximum Current Alert Threshold Exceeded
 				case MAX17201::StatusAlert::ALERT_CURRENT_H :
-					printf("Alert : Maximum Current Threshold Exceeded\n");
+					printf("Alert : Maximum Current Threshold Exceeded\n\r");
 					break;
 
 				// 1% SOC change alert
 				case MAX17201::StatusAlert::ALERT_dSOCI_ :
-					printf("Warning : 1%% SOC change\n");
+					printf("Warning : 1%% SOC change\n\r");
 					break;
 
 				// Minimum Voltage Alert Threshold Exceeded
 				case MAX17201::StatusAlert::ALERT_VOLTAGE_L :
-					printf("Alert : Minimum Voltage Alert Threshold Exceeded\n");
+					printf("Alert : Minimum Voltage Alert Threshold Exceeded\n\r");
 					break;
 
 				// Minimum Temperature Alert Threshold Exceeded
 				case MAX17201::StatusAlert::ALERT_TEMP_L :
-					printf("Alert : Minimum Temperature Alert Threshold Exceeded\n");
+					printf("Alert : Minimum Temperature Alert Threshold Exceeded\n\r");
 					break;
 
 				// Minimum SOC Alert Threshold Exceeded
 				case MAX17201::StatusAlert::ALERT_SOC_L :
-					printf("Alert : Minimum SOC Alert Threshold Exceeded\n");
+					printf("Alert : Minimum SOC Alert Threshold Exceeded\n\r");
 					break;
 
 				// Battery Insertion
 				case MAX17201::StatusAlert::ALERT_BATTERY_INSERT :
-					printf("Alert : Battery Insertion\n");
+					printf("Alert : Battery Insertion\n\r");
 					break;
 
 				// Maximum Voltage Alert Threshold Exceeded
 				case MAX17201::StatusAlert::ALERT_VOLTAGE_H :
-					printf("Alert : Maximum Voltage Alert Threshold Exceeded\n");
+					printf("Alert : Maximum Voltage Alert Threshold Exceeded\n\r");
 					break;
 
 				// Maximum Temperature Alert Threshold Exceeded
 				case MAX17201::StatusAlert::ALERT_TEMP_H :
-					printf("Alert : Maximum Temperature Alert Threshold Exceeded\n");
+					printf("Alert : Maximum Temperature Alert Threshold Exceeded\n\r");
 					break;
 
 				// Maximum SOC Alert Threshold Exceeded
 				case MAX17201::StatusAlert::ALERT_SOC_H :
-					printf("Alert : Maximum SOC Alert Threshold Exceeded\n");
+					printf("Alert : Maximum SOC Alert Threshold Exceeded\n\r");
 					break;
 
 				// Battery Removal
 				case MAX17201::StatusAlert::ALERT_BATTERY_REMOVE :
-					printf("Alert : Battery Removal\n");
+					printf("Alert : Battery Removal\n\r");
 					break;
 
 				default:
 					// error unsupported
-					printf("unsupported Alert\n");
+					printf("unsupported Alert\n\r");
 					break;
 			 }
 		 }
 	}
+	// clear alertStatus register for a new acquisition...
+	gauge.clear_alertStatus_register();
 	printf("\r\n");
 }
 #endif
