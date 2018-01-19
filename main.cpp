@@ -35,7 +35,7 @@ namespace {
 #ifdef MAX17201_ALERT
 // this functions/parameters are used for max17201 management alert
 void callback_alrt(void);
-void mangament_alrt(void);
+void management_alrt(void);
 Thread thread_alrt;
 EventQueue queue;
 uint16_t max17201_alrtStatus = 0;
@@ -102,7 +102,7 @@ int main()
 void callback_alrt()
 {
 	// here, implement your EventQueue attached function
-	queue.call(mangament_alrt);
+	queue.call(management_alrt);
 }
 
 /******************************************************************
@@ -112,9 +112,8 @@ void callback_alrt()
  * this function manage the alert type detected
  *
  ******************************************************************/
-void mangament_alrt() {
+void management_alrt() {
 	// printf for debug : "\r\n" allow to separate this content with main thread contents
-
 	printf("\r\n/!\\ alert detected /!\\\n\r");
 	max17201_alrtStatus = gauge.status();
 	/* treatment status : for each bit of i2c register status (0x00)
