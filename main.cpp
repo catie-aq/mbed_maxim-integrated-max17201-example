@@ -24,7 +24,7 @@ using namespace sixtron;
 namespace {
 #define PERIOD_MS 2000
 #define MAX17201_ALERT
-#define MAX_VOLTAGE_ALERT        3.8 // V
+#define MAX_VOLTAGE_ALERT        4.2 // V
 #define MIN_VOLTAGE_ALERT        3.1 // V
 #define MAX_CURRENT_ALERT        500 // mA
 #define MIN_CURRENT_ALERT        1 	 // mA
@@ -33,7 +33,7 @@ namespace {
 }
 
 #ifdef MAX17201_ALERT
-// this functions/parameters are used for max17201 management alert
+// these functions/parameters are used for max17201 management alert
 void callback_alrt(void);
 void management_alrt(void);
 Thread thread_alrt;
@@ -88,6 +88,7 @@ int main()
         led1 = !led1;
         Thread::wait(PERIOD_MS);
     }
+
 }
 
 
@@ -160,7 +161,7 @@ void management_alrt() {
 
 				// Minimum SOC Alert Threshold Exceeded
 				case MAX17201::StatusAlert::ALERT_SOC_L :
-					printf("Alert : Minimum SOC Alert Threshold Exceeded\n\r");
+					printf("Alert : Minimum State of Charge Alert Threshold Exceeded\n\r");
 					break;
 
 				// Battery Insertion
