@@ -104,7 +104,7 @@ void myCallack_alert()
 
 /** management_alrt
  *
- * this function (here, attached in eventQueue) manage the type of alert detected
+ * this function manage the type of alert detected
  *
  */
 void management_alrt()
