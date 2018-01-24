@@ -14,16 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stddef.h>
 #include "mbed.h"
 #include "max17201.h"
-#include "Thread.h"
 
 using namespace sixtron;
 
 namespace {
 #define PERIOD_MS 2000
-#define MAX17201_ENABLE_ALERT
 #define MAX_VOLTAGE_ALERT        4.2 // V
 #define MIN_VOLTAGE_ALERT        3.1 // V
 #define MAX_CURRENT_ALERT        500 // mA
@@ -32,14 +29,12 @@ namespace {
 #define MIN_TEMPERATURE_ALERT    5   // °C
 }
 
-#ifdef MAX17201_ENABLE_ALERT
 // these functions/parameters are used for max17201 management alert
 void myCallack_alert(void);
 void management_alrt(void);
 Thread thread_alrt;
 EventQueue queue;
 uint16_t max17201_alrtStatus = 0;
-#endif
 
 I2C i2c(I2C_SDA, I2C_SCL);
 MAX17201 gauge(&i2c, DIO1);
@@ -60,17 +55,17 @@ int main()
     */
     if (gauge.configure(1, 800, 3.3, false, false)) {
         printf("Gauge configured !\n\r");
-#ifdef MAX17201_ENABLE_ALERT
-            // here, set the alert threshold function
-            gauge.set_temperature_alerts(MAX_TEMPERATURE_ALERT, MIN_TEMPERATURE_ALERT);
-            gauge.set_voltage_alerts(MAX_VOLTAGE_ALERT, MIN_VOLTAGE_ALERT);
-            gauge.enable_alerts(); // max17201 alert enable
-            gauge.enable_temperature_alerts();
-            wait_ms(250); // let time to software to compute new values
-            gauge.alert_callback(&myCallack_alert); //attach callback alert interrupt function
-            // to use alert management with EventQueue interrupt system (attached an other thread), you need to use this mechanism :
-            thread_alrt.start(callback(&queue, &EventQueue::dispatch_forever));
-#endif
+        // here, set the alert threshold function
+        gauge.set_temperature_alerts(MAX_TEMPERATURE_ALERT, MIN_TEMPERATURE_ALERT);
+        gauge.set_voltage_alerts(MAX_VOLTAGE_ALERT, MIN_VOLTAGE_ALERT);
+        // Enable gauge alerts
+        gauge.enable_alerts();
+        gauge.enable_temperature_alerts();
+        wait_ms(250);
+        // attach callback alert interrupt function
+        gauge.alert_callback(&myCallack_alert);
+        // The Event Queue run in its own thread
+        thread_alrt.start(callback(&queue, &EventQueue::dispatch_forever));
     }
     else {
         printf("Error with gauge ! \n\r");
@@ -89,7 +84,7 @@ int main()
     }
 }
 
-#ifdef MAX17201_ENABLE_ALERT
+
 /** myCallback_alert
  *
  * attach your function on Queue when max17201 alert was detected on interrupt pin
@@ -97,7 +92,7 @@ int main()
  */
 void myCallack_alert()
 {
-    // here, implement your EventQueue attached function
+    // Here Event queue can be used to realize blocking calls
     queue.call(management_alrt);
 }
 
@@ -194,4 +189,3 @@ void management_alrt()
     gauge.clear_alertStatus_register();
     printf("\r\n");
 }
-#endif
