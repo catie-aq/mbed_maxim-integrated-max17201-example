@@ -46,7 +46,7 @@ MAX17201 gauge(&i2c, DIO1);
 static DigitalOut led1(LED1);
 
 
-// main() runs in its own thread in the OSvv
+// main() runs in its own thread in the OS
 // (note the calls to Thread::wait below for delays)
 int main()
 {
@@ -57,8 +57,7 @@ int main()
     configuration. So if gauge remained powered since last configuration,
     dont use the configuration function to keep the learning in order to have more
     accurate values.
-    if the last parameter = true (enable_alert), it's necessary to configure the alert threshold value
-    in gauge.configure function */
+    */
     if (gauge.configure(1, 800, 3.3, false, false)) {
         printf("Gauge configured !\n\r");
 #ifdef MAX17201_ENABLE_ALERT
