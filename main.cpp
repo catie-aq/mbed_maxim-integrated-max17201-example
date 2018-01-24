@@ -87,7 +87,7 @@ int main()
 
 /** myCallback_alert
  *
- * attach your function on Queue when max17201 alert was detected on interrupt pin
+ * attach your function on Queue when max17201 alert is detected on interrupt pin
  *
  */
 void myCallack_alert()
