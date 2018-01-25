@@ -24,7 +24,7 @@ namespace {
 #define MAX_VOLTAGE_ALERT        4.2 // V
 #define MIN_VOLTAGE_ALERT        3.1 // V
 #define MAX_CURRENT_ALERT        500 // mA
-#define MIN_CURRENT_ALERT        1 	 // mA
+#define MIN_CURRENT_ALERT        1   // mA
 #define MAX_TEMPERATURE_ALERT    50  // °C
 #define MIN_TEMPERATURE_ALERT    5   // °C
 }
@@ -66,8 +66,7 @@ int main()
         gauge.alert_callback(&myCallack_alert);
         // The Event Queue run in its own thread
         thread_alrt.start(callback(&queue, &EventQueue::dispatch_forever));
-    }
-    else {
+    } else {
         printf("Error with gauge ! \n\r");
     }
 
@@ -76,8 +75,8 @@ int main()
         printf("Capacity : %.3f mAh\n\r", gauge.reported_capacity());
         printf("Full Capacity : %.3f mAh\n\r", gauge.full_capacity());
         printf("SOC: %.3f percent\n\r", gauge.state_of_charge());
-        printf("Voltage : %.3f Volts\n\r",gauge.cell_voltage()/1000);
-        printf("Current : %.3f mA\n\r",gauge.current());
+        printf("Voltage : %.3f Volts\n\r", gauge.cell_voltage() / 1000);
+        printf("Current : %.3f mA\n\r", gauge.current());
         printf("Temperature : %.3f\n\r", gauge.temperature());
         led1 = !led1;
         Thread::wait(PERIOD_MS);
@@ -107,12 +106,11 @@ void management_alrt()
     printf("\r\n/!\\ alert detected /!\\\n\r");
     max17201_alrtStatus = gauge.status();
     /* treatment status : for each bit of i2c register status (0x00)
-	 * cf page 65 of max17201 datasheet */
-    for (int i=((sizeof(max17201_alrtStatus)*8)-1); i>-1; i--){
+     * cf page 65 of max17201 datasheet */
+    for (int i = ((sizeof(max17201_alrtStatus) * 8) - 1); i > -1; i--) {
         // if detected bit = 1
-        if ((max17201_alrtStatus & (1 << i))){
-            switch(static_cast<MAX17201::StatusAlert>(i))
-            {
+        if ((max17201_alrtStatus & (1 << i))) {
+            switch (static_cast<MAX17201::StatusAlert>(i)) {
                 // Power On Reset Indicator
                 case MAX17201::StatusAlert::ALERT_POR_RST:
                     printf("info : Power On Reset Indicator\n\r");
