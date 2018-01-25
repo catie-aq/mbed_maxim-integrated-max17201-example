@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "mbed.h"
 #include "max17201.h"
 
@@ -95,84 +96,45 @@ void manage_alert()
 {
     printf("** Alert detected! **\n");
     uint16_t gauge_alert_status = gauge.status();
-    /* Treatment status: for each bit of I2C register status (0x00)
-     * cf page 65 of max17201 datasheet */
-    for (int i = ((sizeof(gauge_alert_status) * 8) - 1); i > -1; i--) {
-        // if detected bit = 1
-        if ((gauge_alert_status & (1 << i))) {
-            switch (static_cast<MAX17201::StatusAlert>(i)) {
-                // Power On Reset Indicator
-                case MAX17201::StatusAlert::ALERT_POR_RST:
-                    printf("Info: Power On Reset Indicator\n");
-                    break;
 
-                // Minimum Current Alert Threshold Exceeded
-                case MAX17201::StatusAlert::ALERT_CURRENT_L:
-                    printf("Alert: Minimum Current Threshold Exceeded\n");
-                    break;
-
-                // Battery presence indicator
-                case MAX17201::StatusAlert::BATTERY_IS_PRESENT:
-                    printf("Alert: Battery presence indicator\n");
-                    break;
-
-                // Maximum Current Alert Threshold Exceeded
-                case MAX17201::StatusAlert::ALERT_CURRENT_H:
-                    printf("Alert: Maximum Current Threshold Exceeded\n");
-                    break;
-
-                // 1% SOC change alert
-                case MAX17201::StatusAlert::ALERT_dSOCI_:
-                    printf("Warning: 1%% SOC change\n");
-                    break;
-
-                // Minimum Voltage Alert Threshold Exceeded
-                case MAX17201::StatusAlert::ALERT_VOLTAGE_L:
-                    printf("Alert: Minimum Voltage Alert Threshold Exceeded\n");
-                    break;
-
-                // Minimum Temperature Alert Threshold Exceeded
-                case MAX17201::StatusAlert::ALERT_TEMP_L:
-                    printf("Alert: Minimum Temperature Alert Threshold Exceeded\n");
-                    break;
-
-                // Minimum SOC Alert Threshold Exceeded
-                case MAX17201::StatusAlert::ALERT_SOC_L:
-                    printf("Alert: Minimum State of Charge Alert Threshold Exceeded\n");
-                    break;
-
-                // Battery Insertion
-                case MAX17201::StatusAlert::ALERT_BATTERY_INSERT:
-                    printf("Alert: Battery Insertion\n");
-                    break;
-
-                // Maximum Voltage Alert Threshold Exceeded
-                case MAX17201::StatusAlert::ALERT_VOLTAGE_H:
-                    printf("Alert: Maximum Voltage Alert Threshold Exceeded\n");
-                    break;
-
-                // Maximum Temperature Alert Threshold Exceeded
-                case MAX17201::StatusAlert::ALERT_TEMP_H:
-                    printf("Alert: Maximum Temperature Alert Threshold Exceeded\n");
-                    break;
-
-                // Maximum SOC Alert Threshold Exceeded
-                case MAX17201::StatusAlert::ALERT_SOC_H:
-                    printf("Alert: Maximum SOC Alert Threshold Exceeded\n");
-                    break;
-
-                // Battery Removal
-                case MAX17201::StatusAlert::ALERT_BATTERY_REMOVE:
-                    printf("Alert: Battery Removal\n");
-                    break;
-
-                default:
-                    // error unsupported
-                    printf("** Unknown alert! **\n");
-                    break;
-            }
-        }
+    if (gauge_alert_status & uint16_t(MAX17201::AlertFlags::POWER_RESET)) {
+        printf("Info: Power On Reset Indicator\n");
     }
-    // Clear alertStatus register for a new acquisition...
-    gauge.clear_alertStatus_register();
+    if (gauge_alert_status & uint16_t(MAX17201::AlertFlags::CURRENT_MIN)) {
+        printf("Alert: Minimum Current Threshold Exceeded\n");
+    }
+    if (gauge_alert_status & uint16_t(MAX17201::AlertFlags::BATTERY_PRESENT)) {
+        printf("Alert: Battery presence indicator\n");
+    }
+    if (gauge_alert_status & uint16_t(MAX17201::AlertFlags::CURRENT_MAX)) {
+        printf("Alert: Maximum Current Threshold Exceeded\n");
+    }
+    if (gauge_alert_status & uint16_t(MAX17201::AlertFlags::STATE_OF_CHARGE_CHANGE)) {
+        printf("Warning: 1%% SOC change\n");
+    }
+    if (gauge_alert_status & uint16_t(MAX17201::AlertFlags::VOLTAGE_MIN)) {
+        printf("Alert: Minimum Voltage Alert Threshold Exceeded\n");
+    }
+    if (gauge_alert_status & uint16_t(MAX17201::AlertFlags::TEMPERATURE_MIN)) {
+        printf("Alert: Minimum Temperature Alert Threshold Exceeded\n");
+    }
+    if (gauge_alert_status & uint16_t(MAX17201::AlertFlags::STATE_OF_CHARGE_MIN)) {
+        printf("Alert: Minimum State of Charge Alert Threshold Exceeded\n");
+    }
+    if (gauge_alert_status & uint16_t(MAX17201::AlertFlags::BATTERY_INSERT)) {
+        printf("Alert: Battery Insertion\n");
+    }
+    if (gauge_alert_status & uint16_t(MAX17201::AlertFlags::VOLTAGE_MAX)) {
+        printf("Alert: Maximum Voltage Alert Threshold Exceeded\n");
+    }
+    if (gauge_alert_status & uint16_t(MAX17201::AlertFlags::TEMPERATURE_MAX)) {
+        printf("Alert: Maximum Temperature Alert Threshold Exceeded\n");
+    }
+    if (gauge_alert_status & uint16_t(MAX17201::AlertFlags::STATE_OF_CHARGE_MAX)) {
+        printf("Alert: Maximum SOC Alert Threshold Exceeded\n");
+    }
+    if (gauge_alert_status & uint16_t(MAX17201::AlertFlags::BATTERY_REMOVE)) {
+        printf("Alert: Battery Removal\n");
+    }
 }
+
