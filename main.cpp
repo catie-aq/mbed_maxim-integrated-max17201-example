@@ -26,8 +26,8 @@ namespace {
 #define MIN_VOLTAGE_ALERT 3.1 // V
 #define MAX_CURRENT_ALERT 500 // mA
 #define MIN_CURRENT_ALERT 1 // mA
-#define MAX_TEMPERATURE_ALERT 50 // °C
-#define MIN_TEMPERATURE_ALERT 5 // °C
+#define MAX_TEMPERATURE_ALERT 50 // ï¿½C
+#define MIN_TEMPERATURE_ALERT 5 // ï¿½C
 }
 
 // these functions/parameters are used for max17201 management alert
@@ -73,9 +73,9 @@ int main()
         printf("State of Charge: %.3f%%\n", gauge.state_of_charge());
         printf("Voltage: %.3f V\n", gauge.cell_voltage() / 1000);
         printf("Current: %.3f mA\n", gauge.current());
-        printf("Temperature: %.3f °C\n", gauge.temperature());
+        printf("Temperature: %.3f ï¿½C\n", gauge.temperature());
         led1 = !led1;
-        Thread::wait(PERIOD_MS);
+        ThisThread::sleep_for(PERIOD_MS);
     }
 }
 
